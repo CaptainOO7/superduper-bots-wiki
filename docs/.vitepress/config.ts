@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitepress'
 
-const words = new Intl.Segmenter('zh', { granularity: 'word' })
 const tokenize = (text: string) => {
+  // VitePress serializes this function for the client. Keep its dependencies local.
+  const words = new Intl.Segmenter('zh', { granularity: 'word' })
   const separated = [...words.segment(text)].filter(word => word.isWordLike).map(word => word.segment)
   const han = text.match(/\p{Script=Han}{2,}/gu) ?? []
   const pairs = han.flatMap(term => Array.from(term).slice(1).map((char, index) => Array.from(term)[index] + char))
