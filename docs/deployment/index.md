@@ -1,4 +1,4 @@
-# 部署与自托管
+# GitHub Pages 与产品部署
 
 适用版本：Wiki 初始版本、产品 M1.5-01。
 
@@ -11,13 +11,11 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-## 静态部署
+## 官网与静态构建
 
-运行 `corepack pnpm build`，将 `docs/.vitepress/dist/` 发布到静态 Web 服务器。若服务器使用子路径，构建时设置 `WIKI_BASE=/your-path/`。GitHub Pages 使用项目子路径。
+[官方 Wiki](https://captainoo7.github.io/superduper-bots-wiki/) 由 GitHub Actions 构建并发布到 GitHub Pages。Wiki 使用 VitePress 静态输出，无需独立服务器、数据库、DSH 或模型凭据。
 
-## Docker
-
-运行 `docker compose up --build` 后访问本机 4173 端口。Wiki 无需 DSH、飞书、模型凭据或产品状态。仅对本机开放端口是默认行为。
+运行 `WIKI_BASE=/superduper-bots-wiki/ corepack pnpm build` 可复现官网基础路径的静态构建。输出位于 `docs/.vitepress/dist/`。在本地可使用 `corepack pnpm dev`。静态产物也可放到其他服务器，构建时按实际挂载路径设置 `WIKI_BASE`。仓库中的 Wiki Docker 配置是可选资产，本候选版未验证该构建。产品隔离 Worker 仍需要 Docker。
 
 ## 产品安装
 
