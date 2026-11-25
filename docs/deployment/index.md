@@ -21,22 +21,30 @@ corepack pnpm dev
 
 ## 产品安装
 
-M1.5-01 的版本化发布管理需要授权访问产品源和部署运行手册。独立安装器与向导通过验收后，本页会补充对应版本的操作流程。
+适用版本：SuperDuper Bots 0.2.0-rc.1 候选版。受管产品部署支持 macOS，需要 Docker Desktop、Git、Python 3.12 或更高版本、Node 24 和 Corepack。由维护者获取经审查的产品源，业务身份只用于授权目标仓库。准备独立的私有 release 根目录和状态目录。
 
-## 独立部署候选版
+从已审查的产品检出运行以下命令。将示例目录、服务标签和端口替换为自己的独立参数。
 
-以下流程适用于正在验收的 M1.5 候选版，已在隔离的 macOS 目录中使用夹具验证。真实飞书和模型验收仍待完成。
+```sh
+release_root="$HOME/.local/share/sdb-example-release"
+state_dir="$HOME/.local/share/sdb-example-state"
+reviewed_commit="$(git rev-parse HEAD)"
+mkdir -m 700 "$state_dir"
+scripts/superduper-bots --root "$release_root" install "$reviewed_commit" --repo "$PWD" --prepare-worker
+scripts/superduper-bots --root "$release_root" verify "$reviewed_commit"
+scripts/superduper-bots --root "$release_root" configure --state "$state_dir" --label local.superduper-bots.example --port 3085
+scripts/superduper-bots --root "$release_root" activate "$reviewed_commit"
+scripts/superduper-bots --root "$release_root" setup
+```
 
-1. 使用维护者身份获取已审查的私有产品版本。业务 Reader 与 Writer 只安装在获批的目标仓库。
-2. 创建私有状态目录，使用 `superduper-bots install` 准备不可变 release 和 Worker 镜像。
-3. 使用 `configure` 注册独立服务，然后用 `activate` 选择已验证版本。现有实例继续使用自己的端口和状态目录。
-4. 使用 `setup` 进入向导，或使用 `setup --profile` 导入经审查的私有 profile。部署维护者可查阅产品版本随附的完整命令参数。
-5. 在准备好飞书、GitHub、当前模型证据和单独授权后才启动服务。
+流程保持服务停止。也可用 `setup --profile PATH` 导入经审查的主机私有配置。启动前确认同一 Bot 只有一个事件消费者。
 
-## 准备飞书机器人
+## 向导与账号
 
-在飞书开放平台创建或选择经管理员授权的机器人。配置接收消息事件及所需读写权限。将机器人加入批准的群，区分允许提交请求的人和允许审批的人。将凭据保存在主机私有目录。使用独立机器人可避免两个环境同时消费同一事件。
+在飞书开放平台准备能在批准群组读取和回复消息的机器人，并配置消息事件。指定请求者和审批者。在主机私有目录管理 Bot 包装程序和凭据。
 
-## 配置模型
+向导支持 GitHub 双 App、单 App 分别签发限权令牌、细粒度 PAT、以及匿名读取配合已认证的 App Writer。每个角色使用独立的主机适配器入口。双 App 提供独立的根凭据。单 App 共用根凭据。PAT 实际权限由 GitHub 授予，不能仅靠只读探测断言具备写入权限。匿名 Reader 只适用于公开仓库。使用目标稳定仓库 ID 和默认分支，保持 Source 与 Target 分离。
 
-当前候选版使用 BigModel 的 glm-5.3-flash。向导需要本机私有密钥文件的路径。启动前需要当前资源证据和独立预算授权。服务状态与模型可用额度分别检查。当前验证流程不支持自动充值或续期。
+设置可写路径、登记测试及其 SHA-256、隔离 Worker 镜像及授权记录。选择模型资源模式、每任务及每次 Assignment 的有限调用上限。可选择已验证的 BigModel 部署，或配置经审查的 OpenAI 兼容端点、模型及请求上限。凭据文件留在主机。免凭据端点须显式配置。其他模型端点的兼容验证使用夹具。
+
+遗留受控模式仍要求当前资源证据。独立模式使用对应的授权和账本。启动前确认模型资源与计费边界。
