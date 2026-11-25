@@ -14,4 +14,6 @@
 
 ## FAQ-004 服务已运行和运行健康有什么区别？
 
-适用版本：M1.5-01。服务已运行指进程存在并监听端口，运行健康指服务能正常处理请求且依赖可用。二者不同：已运行不代表健康。使用 superduper-bots status 核查，预期结果是输出运行状态与健康状态两项，运行状态为 running 且健康状态为 healthy 才表示服务正常运行。
+适用版本：M1.5-01。服务已运行表示服务进程已启动，或仍在监听端口。运行健康表示服务的各项功能及其依赖已经就绪。
+
+运行 superduper-bots status 查看结果。loaded 表示 LaunchAgent 是否已加载；即使 loaded 为 true，服务仍可能正在启动或有组件故障。health 按组件列出状态。生产环境通常要求 runtime、feishu 和 github 为 ready。若当前部署预期暂停历史回填，history 为 paused 属于正常状态。
