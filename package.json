@@ -1,0 +1,15 @@
+{
+  "name": "superduper-bots-wiki",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "test": "python3 -m unittest discover -s tests"
+  },
+  "devDependencies": {
+    "vitepress": "1.6.4"
+  }
+}
