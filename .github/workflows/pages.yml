@@ -12,7 +12,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name == github.repository &&
+       vars.WIKI_PREVIEW_WRITER != '' && github.event.pull_request.user.login == vars.WIKI_PREVIEW_WRITER)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

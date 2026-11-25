@@ -19,6 +19,7 @@ jobs:
           node-version: '24.20.0'
       - run: corepack pnpm install --frozen-lockfile
       - run: python3 -m unittest discover -s tests
+      - run: node --test tests/faq.mjs
       - run: corepack pnpm build
         env:
           WIKI_BASE: /superduper-bots-wiki/
