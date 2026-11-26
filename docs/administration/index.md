@@ -1,22 +1,32 @@
 # 服务、用量与恢复
 
-适用版本：M1.5-01。
+适用版本：SuperDuper Bots 0.2.0-rc.1 候选版。
 
-- 使用 `superduper-bots status` 检查运行状态。预期历史回填暂停的环境中，实时 Feishu 状态仍应报告就绪。
-- 使用 `superduper-bots restart` 重启受管实例。确认只有一个实例消费同一机器人的事件。
-- Dashboard 由 DSH 认证。会话到期时通过管理员提供的本机认证流程重新登录。将登录链接视为凭据。
-- 模型额度以持久化账本为准。用量未知的请求保留预留额度，额度不足时停止调用。
-- 升级前先保存经完整性校验的 SQLite 在线备份、私有配置、DSH 持久数据和上一版本的发布清单。
-- 在恢复旧状态前，核对快照之后发生的外部投递、审批和用量。恢复不能归还已消耗额度，也不能重放已完成投递。
+从已审查的产品检出运行 `scripts/superduper-bots --root PATH COMMAND`。将 PATH 替换为你的 release 根目录。先练习只读检查，再进行会改变服务状态的操作。
 
-Backup and recovery require reconciling the usage ledger and external receipts before resuming service.
+| 命令 | 用途 |
+| --- | --- |
+| `status` / `doctor` | 检查安装、依赖、授权、loaded 与逐项 health |
+| `logs` | 查看保留日志计数及健康摘要 |
+| `web` | 打开本机认证 Dashboard；保护认证链接 |
+| `start` / `stop` / `restart` | 控制该实例，保持同一 Bot 的消费独占 |
+| `verify COMMIT` | 校验不可变发布文件 |
+| `backup` | 停服后生成私有 SQLite 快照、注册和持久数据副本 |
+| `restore DIRECTORY` | 验证同一部署、版本、账本和交付记录 |
+| `upgrade COMMIT --repo PATH` / `rollback COMMIT` | 选择已验证且与现有状态相容的发布 |
 
-## 候选版目标切换
+## 模型资源
 
-暂停迁移工作并停止当前实例。先核查是否存在未决任务、活跃话题或交付回执。用单独授权的新 profile 和两个目标专用 App 运行 `config --switch-target`。核查新仓库的稳定 ID、默认分支和授权版本。原审批仍绑定旧仓库，历史任务保持原记录；预算沿用当前账本。
+Enforced 按累计额度和预留控制调用。Monitor 记录使用并显示阈值。Unlimited 不设累计上限，仍记录用量并执行有限的每 Ticket 和 Assignment 请求上限。未知结果保持预留，直至核对有效提供方凭证。Dashboard 的 modelGovernance 报告当前模式和阈值。管理命令的 modelResources 报告记账用量及待核对请求。
 
-## 候选版运维流程
+经授权的管理员在停服后使用私有证据文件运行 `config --reconcile-usage PATH`。独立策略变更使用 `config --resource-policy PATH`，要求静止状态和新授权；已消耗用量仍保留。
 
-使用 `doctor` 检查本机依赖、注册和授权状态。使用 `web` 在当前设备打开认证 Dashboard。使用 `logs` 查看不含原始日志文本的状态摘要。停服后使用 `backup` 备份 SQLite、DSH 持久数据和注册文件。独立的凭据和资源证据由维护者另外备份。
+## 执行额度阻塞
 
-使用 `verify` 校验发布文件，使用 `upgrade` 或 `rollback` 选择兼容版本。使用 `restore` 检查快照归属和账本差异。发现状态差异时先逐条对账，再按该版本恢复手册处理。保持可回退的 release 和外部投递回执。
+只有明确因请求上限停下，且无候选结果、未决交付、未决用量或 Worker 租约的初始 Assignment 可走一次性恢复。停止独立服务，审查原审批、已记账用量与新授权，通过 `config --recover-execution PATH` 提交私有许可。运行时在同一 Ticket 上创建新一代 Assignment，保留旧用量及历史。普通中断与含糊交付须单独核对。
+
+## 升级与回退
+
+升级前保留已验证 release、私有配置、SQLite 快照、受信测试和外部回执。凭据与供应方证据分别私下备份。只有缺失的 DSH 持久目录可通过停服后的 `restore DIRECTORY --recover-persistence` 直接补回。若业务数据库与用量或交付回执存在差异，先由管理员逐项对账。使用当前审查通过的 CLI 进行版本选择；包含执行恢复许可的状态不能回退到缺少该能力的版本。
+
+切换目标前先结束当前工作、处理未决回执并退役活跃话题。使用 `config --switch-target PATH` 提交新授权，原仓库审批保持历史绑定，账本沿用。
